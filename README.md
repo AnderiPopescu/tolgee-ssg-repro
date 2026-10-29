@@ -26,7 +26,7 @@ VARIANT=set-request-locale npx next build  # static, correct translations per lo
 |---|---|---|
 | `docs` | Guide's layout as written | ❌ `used headers()` |
 | `no-provider` | `<TolgeeNextProvider>` removed, `getTolgee()` kept | ❌ `used headers()` |
-| `provider-only` | Provider kept, static data loaded without `getTolgee()` | ✅ SSG |
+| `provider-only` | Provider kept, static data loaded without `getTolgee()` | ✅ `/[locale]/probe` is SSG; ❌ `/[locale]` still fails because its page calls `getTranslate()`, which also calls `getLocale()` |
 | `set-request-locale` | Guide's layout + `setRequestLocale(locale)` in layout and pages | ✅ SSG, `/en` → "Hello world!", `/cs` → "Ahoj světe!" |
 
 ## Cause

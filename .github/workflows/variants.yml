@@ -22,10 +22,13 @@ jobs:
           - variant: no-provider
             expect: dynamic
           - variant: provider-only
+            expect: dynamic
+          - variant: provider-only
+            probe-only: true
             expect: static
           - variant: set-request-locale
             expect: static
-    name: ${{ matrix.variant }} (expect ${{ matrix.expect }})
+    name: ${{ matrix.variant }}${{ matrix.probe-only && ', probe only' || '' }} (expect ${{ matrix.expect }})
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -33,6 +36,10 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Keep only the probe route
+        if: matrix.probe-only
+        # Isolates the layout: the probe page calls no Tolgee/next-intl API.
+        run: rm "src/app/[locale]/page.tsx"
       - name: next build
         env:
           VARIANT: ${{ matrix.variant }}
