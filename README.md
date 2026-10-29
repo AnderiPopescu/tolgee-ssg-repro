@@ -11,6 +11,9 @@ fails if anything in its tree is dynamic.
 
 ## Run
 
+The [Variants workflow](../../actions/workflows/variants.yml) builds each variant in CI and checks the
+result matches the table below. To run it locally:
+
 ```sh
 npm install
 VARIANT=docs npx next build                # fails: used `headers()`
