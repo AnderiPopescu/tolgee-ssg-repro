@@ -42,7 +42,7 @@ Calling `setRequestLocale(locale)` in the layout **and** in every page that uses
 
 ## Fix for the guide
 
-Call next-intl's `setRequestLocale` with the route's locale before anything calls `getTolgee()` or
+Call next-intl's `setRequestLocale` with the route's locale before any call to `getTolgee()` or
 `getTranslate()`, in the layout and in each page:
 
 ```tsx
