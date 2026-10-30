@@ -40,6 +40,42 @@ Calling `setRequestLocale(locale)` in the layout **and** in every page that uses
 (layouts and pages render independently) makes the routes statically renderable. This is
 [next-intl's documented requirement for static rendering](https://next-intl.dev/docs/getting-started/app-router/with-i18n-routing#static-rendering).
 
+## Fix for the guide
+
+Call next-intl's `setRequestLocale` with the route's locale before anything calls `getTolgee()` or
+`getTranslate()`, in the layout and in each page:
+
+```tsx
+// src/app/[locale]/layout.tsx
+import { setRequestLocale } from 'next-intl/server';
+
+export default async function LocaleLayout({ children, params }: Props) {
+  const { locale } = await params;
+  if (!ALL_LANGUAGES.includes(locale)) {
+    notFound();
+  }
+  setRequestLocale(locale);
+
+  const tolgee = await getTolgee();
+  const records = await tolgee.loadRequired();
+  // ...
+}
+```
+
+```tsx
+// src/app/[locale]/page.tsx
+import { setRequestLocale } from 'next-intl/server';
+
+export default async function Home({ params }: Props) {
+  setRequestLocale((await params).locale);
+  const t = await getTranslate();
+  // ...
+}
+```
+
+The guide change is proposed in [tolgee/documentation#1160](https://github.com/tolgee/documentation/pull/1160).
+The `set-request-locale` variant in this repo is the same change, gated by `VARIANT`.
+
 ## Also found
 
 The guide's `src/i18n/request.ts` returns `{ messages: { locale } }`, which fails type-checking
