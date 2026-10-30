@@ -1,0 +1,60 @@
+name: Variants
+
+# Builds every VARIANT and checks it ends the way the README table says, so
+# the result can be read from the Actions tab without cloning the repo.
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: docs
+            expect: dynamic
+          - variant: no-provider
+            expect: dynamic
+          - variant: provider-only
+            expect: dynamic
+          - variant: provider-only
+            probe-only: true
+            expect: static
+          - variant: set-request-locale
+            expect: static
+    name: ${{ matrix.variant }}${{ matrix.probe-only && ', probe only' || '' }} (expect ${{ matrix.expect }})
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Keep only the probe route
+        if: matrix.probe-only
+        # Isolates the layout: the probe page calls no Tolgee/next-intl API.
+        run: rm "src/app/[locale]/page.tsx"
+      - name: next build
+        env:
+          VARIANT: ${{ matrix.variant }}
+          EXPECT: ${{ matrix.expect }}
+        run: |
+          if npx next build > build.log 2>&1; then result=static; else result=dynamic; fi
+          cat build.log
+          echo "::notice::VARIANT=$VARIANT built as $result (expected $EXPECT)"
+          [ "$result" = "$EXPECT" ] || exit 1
+          if [ "$result" = dynamic ]; then
+            # Fail for the reason under test, not an unrelated build error.
+            grep -q 'used `headers()`' build.log
+          fi
+      - name: Check prerendered translations
+        if: matrix.variant == 'set-request-locale'
+        run: |
+          grep -q '<h1>Hello world!</h1>' .next/server/app/en.html
+          grep -q '<h1>Ahoj světe!</h1>' .next/server/app/cs.html
